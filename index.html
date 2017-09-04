@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Test Terminal</title>
+	<script src="jquery-1.7.1.min.js"></script>
+	<script src="jquery.terminal-1.6.4.min.js"></script>
+	<script src="jquery.mousewheel.min.js"></script>
+	<link href="terminal.css" rel="stylesheet"/>
+  </head>
+<body>
+<div id="terminal_id"></div>
+<script>
+var loggedin = false
+var injournal = false
+$('#terminal_id').terminal(function(command) {
+    if (loggedin) {
+		if (command == "ls" && !injournal) {
+			this.echo("journals\n    1.txt");
+		} else if (command == "help") {
+			this.echo("ls\ncd <folder>\nopen <file>");
+		} else if (command == "cd journals" && !injournal) {
+			injournal = true;
+		} else if (command == "cd journals" && injournal) {
+			this.echo("Already in directory")
+		} else if (command == "cd /" && injournal) {
+			injournal = false;
+		} else if (command == "cd /" && !injournal) {
+			this.echo("Already in directory")
+		} else if (command == "ls" && injournal) {
+			this.echo("1.txt")
+		} else if (command == "open 1.txt" && injournal) {
+			this.echo("Get out.\n\n-Administrator")
+		} else if (command.startsWith("open")) {
+			this.echo("Unknown File")
+		} else if (command.startsWith("cd")) {
+			this.echo("Unknown Directory")
+		} else {
+			this.echo("Unknown Command")
+		}
+    } else if (command == "login admin BasseE") {
+		this.echo("Logged in");
+		loggedin = true;
+	} else if (command == "help") {
+		this.echo("login <username> <password>");
+	} else {
+		this.echo("Access Denied");
+	}
+}, { greetings: false, prompt: '> ', name: 'Terminal' });
+</script>
+</body>
+</html>

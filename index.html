@@ -11,9 +11,65 @@
 <body>
 <div id="terminal_id"></div>
 <script>
-var loggedin = false
-var injournal = false
-$('#terminal_id').terminal(function(command) {
+function progress(percent, width) {
+    var size = Math.round(width*percent/100);
+    var left = '', taken = '', i;
+    for (i=size; i--;) {
+        taken += '=';
+    }
+    if (taken.length > 0) {
+        taken = taken.replace(/=$/, '>');
+    }
+    for (i=width-size; i--;) {
+        left += ' ';
+    }
+    return '[' + taken + left + '] ' + percent + '%';
+}
+var animation = false;
+
+var prompt;
+function greetings(term) {
+	var size = 30;
+	var timer;
+	var string;
+	term.echo("Loading Database");
+	prompt = term.get_prompt();
+	string = progress(0, size);
+	term.set_prompt(string);
+	animation = true;
+	var i = 0
+	function a() {
+		string = progress(i++, size);
+		term.set_prompt(string);
+		if (i< 100) {
+			timer = setTimeout(a, 100);
+		} else {
+			term.echo(progress(i, size) + ' [[b;green;]LOADED]');
+			term.set_prompt(prompt);
+			term.echo("Connecting to Cabal");
+			string = progress(0, size);
+			term.set_prompt(string)
+			i = 0;
+			b();
+		}
+	}
+	a();
+	function b() {
+		string = progress(i++, size);
+		term.set_prompt(string);
+		if (i< 37) {
+			timer = setTimeout(b, 100);
+		} else {
+			term.echo(progress(i, size) + ' [[b;red;]FAILED]');
+			term.set_prompt(prompt);
+			animation = false;
+		}
+	}
+
+}
+var loggedin = false;
+var injournal = false;
+$('#terminal_id').terminal(function(command, term) {
     if (loggedin) {
 		if (command == "ls" && !injournal) {
 			this.echo("journals\n    1.txt");
@@ -46,7 +102,12 @@ $('#terminal_id').terminal(function(command) {
 	} else {
 		this.echo("Access Denied");
 	}
-}, { greetings: false, prompt: '> ', name: 'Terminal' });
+}, { prompt: '> ',
+	 name: 'Terminal', 
+	 onInit: function(term) {greetings(term);}, 
+	 keydown: function(e, term) { if (animation) { return false }}, 
+	 greetings: false
+	 });
 </script>
 </body>
 </html>
